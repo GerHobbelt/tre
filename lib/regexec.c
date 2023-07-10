@@ -45,7 +45,6 @@ char *alloca ();
 #include <limits.h>
 
 #include "tre-internal.h"
-#include "tre.h"
 #include "xmalloc.h"
 
 
@@ -209,11 +208,36 @@ tre_regnexec(const regex_t *preg, const char *str, size_t len,
   return tre_match(tnfa, str, len, type, nmatch, pmatch, eflags);
 }
 
+#ifdef TRE_USE_GNUC_REGEXEC_FPL
+int
+tre_regexec(const regex_t *preg, const char *str,
+	size_t nmatch, regmatch_t pmatch[_Restrict_arr_ _REGEX_NELTS (nmatch)],
+	int eflags)
+#else
 int
 tre_regexec(const regex_t *preg, const char *str,
 	size_t nmatch, regmatch_t pmatch[], int eflags)
+#endif
 {
   return tre_regnexec(preg, str, (unsigned)-1, nmatch, pmatch, eflags);
+}
+
+int
+tre_regexecb(const regex_t *preg, const char *str,
+        size_t nmatch, regmatch_t pmatch[], int eflags)
+{
+  tre_tnfa_t *tnfa = (void *)preg->TRE_REGEX_T_FIELD;
+
+  return tre_match(tnfa, str, (unsigned)-1, STR_BYTE, nmatch, pmatch, eflags);
+}
+
+int
+tre_regnexecb(const regex_t *preg, const char *str, size_t len,
+        size_t nmatch, regmatch_t pmatch[], int eflags)
+{
+  tre_tnfa_t *tnfa = (void *)preg->TRE_REGEX_T_FIELD;
+
+  return tre_match(tnfa, str, len, STR_BYTE, nmatch, pmatch, eflags);
 }
 
 
@@ -307,6 +331,16 @@ tre_regaexec(const regex_t *preg, const char *str,
 	 regamatch_t *match, regaparams_t params, int eflags)
 {
   return tre_reganexec(preg, str, (unsigned)-1, match, params, eflags);
+}
+
+int
+tre_regaexecb(const regex_t *preg, const char *str,
+          regamatch_t *match, regaparams_t params, int eflags)
+{
+  tre_tnfa_t *tnfa = (void *)preg->TRE_REGEX_T_FIELD;
+
+  return tre_match_approx(tnfa, str, (unsigned)-1, STR_BYTE,
+                          match, params, eflags);
 }
 
 #ifdef TRE_WCHAR

@@ -1,9 +1,9 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(TRE, 0.8.0, [tre-general@lists.laurikari.net])
+AC_INIT(TRE, 0.8.0)
 AC_CONFIG_SRCDIR([lib/regcomp.c])
-AC_CONFIG_AUX_DIR(utils)
+AC_CONFIG_AUX_DIR([utils])
 AC_CANONICAL_TARGET
-AM_INIT_AUTOMAKE(1.9.0)
+AM_INIT_AUTOMAKE([foreign])
 AC_PREREQ(2.59)
 AM_GNU_GETTEXT_VERSION(0.17)
 
@@ -520,11 +520,12 @@ AM_DISABLE_STATIC
 AC_PROG_LIBTOOL
 
 dnl Output files
-AC_CONFIG_HEADERS([config.h lib/tre-config.h])
+AC_CONFIG_HEADERS([config.h local_includes/tre-config.h])
 AC_CONFIG_FILES([
 Makefile
 doc/Makefile
 doc/agrep.1
+local_includes/Makefile
 lib/Makefile
 m4/Makefile
 po/Makefile.in

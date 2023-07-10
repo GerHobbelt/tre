@@ -70,7 +70,6 @@ char *alloca ();
 #include "tre-internal.h"
 #include "tre-mem.h"
 #include "tre-match-utils.h"
-#include "tre.h"
 #include "xmalloc.h"
 
 typedef struct {
@@ -115,10 +114,12 @@ typedef struct tre_backtrack_struct {
 #define tre_bt_mem_new		  tre_mem_newa
 #define tre_bt_mem_alloc	  tre_mem_alloca
 #define tre_bt_mem_destroy(obj)	  do { } while (0)
+#define xafree(obj)		  /* do nothing, obj was obtained with alloca() */
 #else /* !TRE_USE_ALLOCA */
 #define tre_bt_mem_new		  tre_mem_new
 #define tre_bt_mem_alloc	  tre_mem_alloc
 #define tre_bt_mem_destroy	  tre_mem_destroy
+#define xafree(obj)		  xfree(obj)
 #endif /* !TRE_USE_ALLOCA */
 
 
@@ -134,11 +135,11 @@ typedef struct tre_backtrack_struct {
 	    {								      \
 	      tre_bt_mem_destroy(mem);					      \
 	      if (tags)							      \
-		xfree(tags);						      \
+		xafree(tags);						      \
 	      if (pmatch)						      \
-		xfree(pmatch);						      \
+		xafree(pmatch);						      \
 	      if (states_seen)						      \
-		xfree(states_seen);					      \
+		xafree(states_seen);					      \
 	      return REG_ESPACE;					      \
 	    }								      \
 	  s->prev = stack;						      \
@@ -149,11 +150,11 @@ typedef struct tre_backtrack_struct {
 	    {								      \
 	      tre_bt_mem_destroy(mem);					      \
 	      if (tags)							      \
-		xfree(tags);						      \
+		xafree(tags);						      \
 	      if (pmatch)						      \
-		xfree(pmatch);						      \
+		xafree(pmatch);						      \
 	      if (states_seen)						      \
-		xfree(states_seen);					      \
+		xafree(states_seen);					      \
 	      return REG_ESPACE;					      \
 	    }								      \
 	  stack->next = s;						      \
@@ -171,7 +172,7 @@ typedef struct tre_backtrack_struct {
 	stack->item.tags[i] = (_tags)[i];				      \
       BT_STACK_MBSTATE_IN;						      \
     }									      \
-  while (/*CONSTCOND*/0)
+  while (/*CONSTCOND*/(void)0,0)
 
 #define BT_STACK_POP()							      \
   do									      \
@@ -184,13 +185,13 @@ typedef struct tre_backtrack_struct {
       str_byte = stack->item.str_byte;					      \
       BT_STACK_WIDE_OUT;						      \
       state = stack->item.state;					      \
-      next_c = stack->item.next_c;					      \
+      next_c = (tre_char_t) stack->item.next_c;					      \
       for (i = 0; i < tnfa->num_tags; i++)				      \
 	tags[i] = stack->item.tags[i];					      \
       BT_STACK_MBSTATE_OUT;						      \
       stack = stack->prev;						      \
     }									      \
-  while (/*CONSTCOND*/0)
+  while (/*CONSTCOND*/(void)0,0)
 
 #undef MIN
 #define MIN(a, b) ((a) <= (b) ? (a) : (b))
@@ -370,7 +371,7 @@ tre_tnfa_run_backtrack(const tre_tnfa_t *tnfa, const void *string,
   if (state == NULL)
     goto backtrack;
 
-  while (/*CONSTCOND*/1)
+  while (/*CONSTCOND*/(void)1,1)
     {
       tre_tnfa_transition_t *next_state;
       int empty_br_match;
@@ -424,7 +425,7 @@ tre_tnfa_run_backtrack(const tre_tnfa_t *tnfa, const void *string,
 	  DPRINT(("  should match back reference %d\n", bt));
 	  /* Get the substring we need to match against.  Remember to
 	     turn off REG_NOSUB temporarily. */
-	  tre_fill_pmatch(bt + 1, pmatch, tnfa->cflags & /*LINTED*/!REG_NOSUB,
+	  tre_fill_pmatch(bt + 1, pmatch, tnfa->cflags & ~REG_NOSUB,
 			  tnfa, tags, pos);
 	  so = pmatch[bt].rm_so;
 	  eo = pmatch[bt].rm_eo;
@@ -600,7 +601,7 @@ tre_tnfa_run_backtrack(const tre_tnfa_t *tnfa, const void *string,
 	  if (stack->prev)
 	    {
 	      DPRINT(("	 backtracking\n"));
-	      if (stack->item.state->assertions && ASSERT_BACKREF)
+	      if (stack->item.state->assertions & ASSERT_BACKREF)
 		{
 		  DPRINT(("  states_seen[%d] = 0\n",
 			  stack->item.state_id));
@@ -630,7 +631,7 @@ tre_tnfa_run_backtrack(const tre_tnfa_t *tnfa, const void *string,
 		    }
 		}
 	      DPRINT(("restarting from next start position\n"));
-	      next_c = next_c_start;
+	      next_c = (tre_char_t) next_c_start;
 #ifdef TRE_MBSTATE
 	      mbstate = mbstate_start;
 #endif /* TRE_MBSTATE */
@@ -655,11 +656,11 @@ tre_tnfa_run_backtrack(const tre_tnfa_t *tnfa, const void *string,
   tre_bt_mem_destroy(mem);
 #ifndef TRE_USE_ALLOCA
   if (tags)
-    xfree(tags);
+    xafree(tags);
   if (pmatch)
-    xfree(pmatch);
+    xafree(pmatch);
   if (states_seen)
-    xfree(states_seen);
+    xafree(states_seen);
 #endif /* !TRE_USE_ALLOCA */
 
   return ret;

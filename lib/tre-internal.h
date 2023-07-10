@@ -17,14 +17,15 @@
 #include <wctype.h>
 #endif /* !HAVE_WCTYPE_H */
 
+#include <limits.h>
 #include <ctype.h>
-#include "tre.h"
+#include "../local_includes/tre.h"
 
 #ifdef TRE_DEBUG
 #include <stdio.h>
-#define DPRINT(msg) do {printf msg; fflush(stdout);} while(/*CONSTCOND*/0)
+#define DPRINT(msg) do {printf msg; fflush(stdout);} while(/*CONSTCOND*/(void)0,0)
 #else /* !TRE_DEBUG */
-#define DPRINT(msg) do { } while(/*CONSTCOND*/0)
+#define DPRINT(msg) do { } while(/*CONSTCOND*/(void)0,0)
 #endif /* !TRE_DEBUG */
 
 #define elementsof(x)	( sizeof(x) / sizeof(x[0]) )
@@ -48,7 +49,11 @@
 
 /* Wide characters. */
 typedef wint_t tre_cint_t;
+#if WCHAR_MAX <= INT_MAX
 #define TRE_CHAR_MAX WCHAR_MAX
+#else /* WCHAR_MAX > INT_MAX */
+#define TRE_CHAR_MAX INT_MAX
+#endif
 
 #ifdef TRE_MULTIBYTE
 #define TRE_MB_CUR_MAX MB_CUR_MAX

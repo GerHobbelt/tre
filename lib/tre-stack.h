@@ -10,7 +10,7 @@
 #ifndef TRE_STACK_H
 #define TRE_STACK_H 1
 
-#include "tre.h"
+#include "../local_includes/tre.h"
 
 typedef struct tre_stack_rec tre_stack_t;
 
@@ -54,7 +54,7 @@ declare_popf(int, int);
     {									      \
       status = tre_stack_push_ ## typetag(s, value);			      \
     }									      \
-  while (/*CONSTCOND*/0)
+  while (/*CONSTCOND*/(void)0,0)
 
 #define STACK_PUSHX(s, typetag, value)					      \
   {									      \

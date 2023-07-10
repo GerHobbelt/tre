@@ -62,7 +62,6 @@ char *alloca ();
 
 #include "tre-internal.h"
 #include "tre-match-utils.h"
-#include "tre.h"
 #include "xmalloc.h"
 
 
@@ -269,7 +268,7 @@ tre_tnfa_run_parallel(const tre_tnfa_t *tnfa, const void *string, int len,
   DPRINT(("-------------+------------------------------------------------\n"));
 
   reach_next_i = reach_next;
-  while (/*CONSTCOND*/1)
+  while (/*CONSTCOND*/(void)1,1)
     {
       /* If no match found yet, add the initial states to `reach_next'. */
       if (match_eo < 0)
@@ -320,7 +319,7 @@ tre_tnfa_run_parallel(const tre_tnfa_t *tnfa, const void *string, int len,
       else
 	{
 	  if (num_tags == 0 || reach_next_i == reach_next)
-	    /* We have found a match. */
+	    /* We have found a match. */
 	    break;
 	}
 
