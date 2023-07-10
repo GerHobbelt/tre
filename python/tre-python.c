@@ -26,12 +26,15 @@
 #include "Python.h"
 #include "structmember.h"
 
-#ifdef HAVE_PYEXT
-/* Using waf to build */
-#include "tre.h"
-#else
-/* Using setup.py to build */
+#ifdef USE_INSTALLED_TRE_H
+/* Use the header(s) from an installed version of the TRE package
+   (so that this extension matches the installed libtre),
+   not the one(s) in the local_includes directory. */
 #include <tre/tre.h>
+#else
+/* Make certain to use the header(s) from the TRE package that this
+   file is part of by giving the full path to the header from this directory. */
+#include "../local_includes/tre.h"
 #endif
 
 /* Define this if you want to release the GIL during compilation or searching.
@@ -218,7 +221,7 @@ PyTreMatch_groups(TreMatchObject *self, PyObject *dummy)
 }
 
 static PyObject *
-PyTreMatch_groupi(PyObject *obj, long gn)
+PyTreMatch_groupi(PyObject *obj, Py_ssize_t gn)
 {
   TreMatchObject *self = (TreMatchObject*)obj;
   PyObject *result;
@@ -583,7 +586,7 @@ static PyTypeObject TrePatternType = {
 };
 
 static TrePatternObject *
-newTrePatternObject()
+newTrePatternObject(void)
 {
   TrePatternObject *self;
 

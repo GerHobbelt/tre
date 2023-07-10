@@ -40,6 +40,8 @@ You will need the following tools installed on your system:
   - libtool
   - zip (optional)
 
+If you choose to use the "waf" build system you will need python 3.5
+or above.  See the file "README_waf.txt" for more information.
 
 Building
 --------
@@ -295,4 +297,5 @@ These are other features I'm planning to implement real soon now:
 Documentation especially for the nonstandard features of TRE, such
 as approximate matching, is a work in progress (with "progress"
 loosely defined...)  If you want to find an extension to use, reading
-the `tre.h` header is more helpful.
+the `include/tre/tre.h` header might provide some additional hints if
+you are comfortable with C source code.
