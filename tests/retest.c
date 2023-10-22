@@ -39,7 +39,9 @@
 #include <sys/types.h>
 #include <locale.h>
 /* look for getopt in order to use a -o option for output. */
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif /* HAVE_MALLOC_H */
