@@ -19,6 +19,7 @@
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
+#include <wctype.h>
 
 #include "xmalloc.h"
 #include "tre-mem.h"

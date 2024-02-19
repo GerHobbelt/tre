@@ -8,7 +8,9 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
+#else
+#include "tre-config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,10 +23,18 @@
 #include "xmalloc.h"
 #endif /* MALLOC_DEBUGGING */
 
+#include "monolithic_examples.h"
+
+
 #define REGEXP_MAX_LEN 16
 
+
+#if defined(BUILD_MONOLITHIC)
+#define main         tre_randtest_main
+#endif
+
 int
-main(int argc, char **argv)
+main(int argc, const char **argv)
 {
   int len, i, flags, n;
   char regex[50];

@@ -8,15 +8,27 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
+#else
+#include "tre-config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 /* look for getopt in order to use a -o option for output. */
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#include "regex.h"
+#endif
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
+
+#include <regex.h>
+
 #include "tre-internal.h"
+
+#include "monolithic_examples.h"
+
 
 static FILE *output_fd = NULL;
 
@@ -63,8 +75,8 @@ str_handler_compare(size_t pos1, size_t pos2, size_t len, void *context)
 {
   str_handler_ctx *ctx = context;
   fprintf(output_fd,"comparing %lu-%lu and %lu-%lu\n",
-	 (unsigned long)pos1, (unsigned long)pos1 + len,
-	 (unsigned long)pos2, (unsigned long)pos2 + len);
+	 (unsigned long)pos1, (unsigned long)(pos1 + len),
+	 (unsigned long)pos2, (unsigned long)(pos2 + len));
   return strncmp(ctx->str + pos1, ctx->str + pos2, len);
 }
 
@@ -125,8 +137,13 @@ test_reguexec(const char *str, const char *regex)
   tre_regfree(&preg);
 }
 
+
+#if defined(BUILD_MONOLITHIC)
+#define main         tre_test_str_source_main
+#endif
+
 int
-main(int argc, char **argv)
+main(int argc, const char **argv)
 {
   int ch;
   output_fd = stdout;

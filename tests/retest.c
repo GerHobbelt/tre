@@ -30,7 +30,9 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
+#else
+#include "tre-config.h"
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,8 +46,15 @@
 #endif
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
-#endif /* HAVE_MALLOC_H */
+#endif
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
+#ifdef HAVE_REGEX_H
 #include <regex.h>
+#endif
+
+#include "monolithic_examples.h"
 
 #ifdef TRE_VERSION
 #define HAVE_REGNEXEC 1
@@ -582,10 +591,15 @@ test_comp(const char *re, int flags, int ret)
 /* To enable tests for known bugs, set this to 1. */
 #define KNOWN_BUG 0
 
-int
-main(int argc, char **argv)
-{
 
+
+#if defined(BUILD_MONOLITHIC)
+#define main         tre_retest_main
+#endif
+
+int
+main(int argc, const char **argv)
+{
   int ch;
   output_fd = stdout;
   while (EOF != (ch = getopt(argc,argv,"o:"))) {
