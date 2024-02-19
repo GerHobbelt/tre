@@ -8,7 +8,10 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
+#else
+#include "tre-config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
@@ -19,10 +22,15 @@
 #include <errno.h>
 #include <assert.h>
 #include <limits.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef _WIN32
+#include <io.h>
+#endif
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
-#endif /* HAVE_GETOPT_H */
+#endif
 /* Make certain we get the legacy TRE specific regex.h and not any
    potential system regex.h by giving an explict path to the header. */
 #include "../local_includes/regex.h"
@@ -42,12 +50,15 @@
 #define MAX(a, b) (((a) >= (b)) ? (a) : (b))
 #define MIN(a, b) (((a) <= (b)) ? (a) : (b))
 
+#include "monolithic_examples.h"
+
+
 /* Short options. */
 static char const short_options[] =
 "cd:e:hiklnqsvwyBD:E:HI:MS:V0123456789-:";
 
-static int show_help;
-char *program_name;
+static int show_help = 0;
+static const char *program_name = NULL;
 
 #ifdef HAVE_GETOPT_LONG
 /* Long options that have no corresponding short equivalents. */
@@ -90,7 +101,7 @@ static struct option const long_options[] =
 };
 #endif /* HAVE_GETOPT_LONG */
 
-static void
+static int
 tre_agrep_usage(int status)
 {
   if (status != 0)
@@ -157,18 +168,20 @@ exact matches are selected.\n"));
       printf(_("\
 PATTERN is a POSIX extended regular expression (ERE) with the TRE extensions.\n\
 See tre(7) for a complete description.\n"));
+#if defined(PACKAGE_BUGREPORT)
       printf("\n");
       printf(_("Report bugs to: "));
       printf("%s.\n", PACKAGE_BUGREPORT);
-    }
-  exit(status);
+#endif
+  }
+  return status;
 }
 
 static regex_t preg;	  /* Compiled pattern to search for. */
 static regex_t delim;	  /* Compiled record delimiter pattern. */
 
 #define INITIAL_BUF_SIZE 10240	/* Initial size of the buffer. */
-static char *buf;	   /* Buffer for scanning text. */
+static char *buf;	       /* Buffer for scanning text. */
 static int buf_size;	   /* Current size of the buffer. */
 static int data_len;	   /* Amount of data in the buffer. */
 static char *record;	   /* Start of current record. */
@@ -467,13 +480,17 @@ tre_agrep_handle_file(const char *filename)
 
 
 
+#if defined(BUILD_MONOLITHIC)
+#define main         tre_agrep_main
+#endif
+
 int
-main(int argc, char **argv)
+main(int argc, const char **argv)
 {
   int c, errcode;
   int comp_flags = REG_EXTENDED;
   char *tmp_str;
-  char *regexp = NULL;
+  const char *regexp = NULL;
   const char *delim_regexp = "\n";
   int word_regexp = 0;
   int literal_string = 0;
@@ -490,7 +507,10 @@ main(int argc, char **argv)
       tmp_str = strrchr(program_name, '/');
       if (tmp_str)
 	program_name = tmp_str + 1;
-    }
+	  tmp_str = strrchr(program_name, '\\');
+	  if (tmp_str)
+		  program_name = tmp_str + 1;
+  }
 
   /* Defaults. */
   print_filename = -1;
@@ -643,14 +663,14 @@ Copyright (c) 2001-2009 Ville Laurikari <vl@iki.fi>.\n"));
 	  if (c >= '0' && c <= '9')
 	    match_params.max_cost = c - '0';
 	  else
-	    tre_agrep_usage(2);
+	    return tre_agrep_usage(2);
 	  max_cost_set = 1;
 	  break;
 	}
     }
 
   if (show_help)
-    tre_agrep_usage(0);
+    return tre_agrep_usage(0);
 
   if (color_option)
     {
@@ -663,7 +683,7 @@ Copyright (c) 2001-2009 Ville Laurikari <vl@iki.fi>.\n"));
   if (regexp == NULL)
     {
       if (optind >= argc)
-	tre_agrep_usage(2);
+        return tre_agrep_usage(2);
       regexp = argv[optind++];
     }
 
@@ -674,7 +694,7 @@ Copyright (c) 2001-2009 Ville Laurikari <vl@iki.fi>.\n"));
      which works together with -w (see below). */
   if (literal_string)
     {
-      char *next_pos = regexp;
+      const char *next_pos = regexp;
       char *new_re, *new_re_end;
       int n = 0;
       int len;
@@ -704,7 +724,7 @@ Copyright (c) 2001-2009 Ville Laurikari <vl@iki.fi>.\n"));
       new_re_end += 2;
       while (next_pos)
 	{
-	  char *start = next_pos;
+	  const char *start = next_pos;
 	  next_pos = strstr(next_pos, "\\E");
 	  if (next_pos)
 	    {
@@ -728,17 +748,17 @@ Copyright (c) 2001-2009 Ville Laurikari <vl@iki.fi>.\n"));
      assertions to the regexp before compiling. */
   if (word_regexp)
     {
-      char *tmp = regexp;
-      int len = strlen(tmp);
-      regexp = malloc(len + 7);
-      if (regexp == NULL)
+      int len = strlen(regexp);
+	  char* tmp = malloc(len + 7);
+      if (tmp == NULL)
 	{
 	  fprintf(stderr, "%s: %s\n", program_name, _("Out of memory"));
 	  return 2;
 	}
-      strcpy(regexp, "\\<(");
-      strcpy(regexp + 3, tmp);
-      strcpy(regexp + len + 3, ")\\>");
+      strcpy(tmp, "\\<(");
+      strcpy(tmp + 3, regexp);
+      strcpy(tmp + len + 3, ")\\>");
+	  regexp = tmp;
     }
 
   /* Compile the pattern. */

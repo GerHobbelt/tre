@@ -16,7 +16,7 @@
 #define HAVE_ALLOCA 1
 
 /* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
-   */
+ */
 /* #undef HAVE_ALLOCA_H */
 
 /* Define to 1 if you have <malloc.h> and it should be used. */
@@ -27,7 +27,7 @@
 /* #undef HAVE_DCGETTEXT */
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
-#undef HAVE_DLFCN_H
+/* #undef HAVE_DLFCN_H */
 
 /* Define to 1 if you have the <getopt.h> header file. */
 #define HAVE_GETOPT_H 1
@@ -36,13 +36,13 @@
 #define HAVE_GETOPT_LONG 1
 
 /* Define if the GNU gettext() function is already present or preinstalled. */
-#undef HAVE_GETTEXT
+/* #undef HAVE_GETTEXT */
 
 /* Define if you have the iconv() function. */
-#undef HAVE_ICONV
+/* #undef HAVE_ICONV */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-#undef HAVE_INTTYPES_H
+/* #undef HAVE_INTTYPES_H */
 
 /* Define to 1 if you have the `isascii' function. */
 #define HAVE_ISASCII 1
@@ -69,12 +69,13 @@
 #define HAVE_MBTOWC 1
 
 /* Define to 1 if you have the <memory.h> header file. */
-#undef HAVE_MEMORY_H
+/* #undef HAVE_MEMORY_H */
 
 /* Define to 1 if you have the <regex.h> header file. */
-#undef HAVE_REGEX_H
-                                                                                                /* Define to 1 if the system has the type `reg_errcode_t'. */
-#undef HAVE_REG_ERRCODE_T
+/* #undef HAVE_REGEX_H */
+
+/* Define to 1 if the system has the type `reg_errcode_t'. */
+/* #undef HAVE_REG_ERRCODE_T */
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
@@ -102,6 +103,9 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 /* #undef HAVE_UNISTD_H */
+
+/* Define to 1 if you have the <libutf8.h> header file. */
+/* #undef HAVE_LIBUTF8_H */
 
 /* Define to 1 if you have the <wchar.h> header file. */
 #define HAVE_WCHAR_H 1
@@ -153,9 +157,13 @@
 #define TRE_REGEX_T_FIELD value
 
 /* Define to the absolute path to the system regex.h */
-/* #undef TRE_SYSTEM_REGEX_H_PATH */
+#define TRE_SYSTEM_REGEX_H_PATH <regex.h>
 
-/* Define to include the system regex.h from TRE regex.h */
+/* Define if you want TRE to use alloca() instead of malloc() when allocating
+   memory needed for regexec operations. */
+/* #undef TRE_USE_ALLOCA */
+
+/* Define to include the system regex.h from tre.h */
 /* #undef TRE_USE_SYSTEM_REGEX_H */
 
 /* Define to enable wide character (wchar_t) support. */
@@ -178,8 +186,22 @@
 #define inline __inline
 
 /* Avoid silly warnings about "insecure" functions. */
+#ifndef _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_DEPRECATE 1
+#endif
 
 #if (!defined _MSC_VER) || (_MSC_VER < 1900) /* not needed in vs2015 */
 	#define snprintf sprintf_s
 #endif
+
+/* TRE version string. */
+#define TRE_VERSION "0.8.0"
+
+/* TRE version level 1. */
+#define TRE_VERSION_1 0
+
+/* TRE version level 2. */
+#define TRE_VERSION_2 8
+
+/* TRE version level 3. */
+#define TRE_VERSION_3 0

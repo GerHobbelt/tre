@@ -8,27 +8,29 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
+#else
+#include "tre-config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
-#endif /* HAVE_GETOPT_H */
+#endif
 #include <time.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <math.h>
 #include <sys/types.h>
 
-#if 0
-#include <hackerlab/rx-posix/regex.h>
-#else
 #include <regex.h>
-#endif
+
+#include "monolithic_examples.h"
 
 /* T distribution for alpha = 0.025 (for 95% confidence).  XXX - is
    this correct? */
-double t_distribution[] = {
+static double t_distribution[] = {
   12.71,
   4.303,
   3.182,
@@ -61,7 +63,7 @@ double t_distribution[] = {
   2.042
 };
 
-void
+static void
 stats(double *sample_data, int samples, int len)
 {
   double mean, tmp1, tmp2, variance, stddev, error, percent;
@@ -104,7 +106,7 @@ stats(double *sample_data, int samples, int len)
   fflush(stdout);
 }
 
-void
+static void
 run_tests(int len, int samples, double *sample_data, int repeats,
 	  regex_t *reobj, char *str, char *tmpbuf)
 {
@@ -140,8 +142,12 @@ run_tests(int len, int samples, double *sample_data, int repeats,
 }
 
 
+#if defined(BUILD_MONOLITHIC)
+#define main         tre_bench_test_main
+#endif
+
 int
-main(int argc, char **argv)
+main(int argc, const char **argv)
 {
   regex_t reobj;
   char *str;
