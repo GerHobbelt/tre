@@ -279,7 +279,7 @@ check(va_list ap, int ret, const CHAR_T *str,
 	     "string: \"%ls\", eflags %d\n", regex_pattern, cflags_global,
 	     str, eflags);
 #endif /* WRETEST */
-      fprintf(output_fd,"	got %smatch (tre_regexec returned %d)\n", ret ? "no " : "", ret);
+      fprintf(output_fd,"\tgot %smatch (tre_regexec returned %d)\n", ret ? "no " : "", ret);
       return 1;
     }
 
@@ -314,12 +314,12 @@ check(va_list ap, int ret, const CHAR_T *str,
 #ifndef WRETEST
 	      fprintf(output_fd,"Exec error, regex: \"%s\", string: \"%s\"\n",
 		     regex_pattern, str);
-	      fprintf(output_fd,"	group %d: expected (%d, %d) \"%.*s\", "
+	      fprintf(output_fd,"\tgroup %d: expected (%d, %d) \"%.*s\", "
 		     "got (%d, %d) \"%.*s\"\n",
 #else /* WRETEST */
 	      fprintf(output_fd,"Exec error, regex: \"%ls\", string: \"%ls\"\n",
 		     regex_pattern, str);
-	      fprintf(output_fd,"	group %d: expected (%d, %d) \"%.*ls\", "
+	      fprintf(output_fd,"\tgroup %d: expected (%d, %d) \"%.*ls\", "
 		     "got (%d, %d) \"%.*ls\"\n",
 #endif /* WRETEST */
 		     i, rm_so, rm_eo, rm_eo - rm_so, str + rm_so,
@@ -431,7 +431,6 @@ test_nexec(const char *data, size_t len, int eflags, ...)
   if (fail)
     exec_errors++;
 }
-
 
 
 static void
@@ -577,13 +576,43 @@ test_comp(const char *re, int flags, int ret)
 #else /* WRETEST */
       fprintf(output_fd,"Comp error, regex: \"%ls\"\n", regex_pattern);
 #endif /* WRETEST */
-      fprintf(output_fd,"	expected return code %d, got %d.\n",
+      fprintf(output_fd,"\texpected return code %d, got %d.\n",
 	     ret, errcode);
       comp_errors++;
     }
 
   if (errcode == 0)
     valid_reobj = 1;
+}
+
+
+// raw to string converter used to circumvent the various codepage issues/strings we're using in these tests.
+static const char *
+raw2str(unsigned int c0, ...)
+{
+	// non-threadsafe, only usable for the tests below. the array size is a rough guess.
+	static char buf[2048];
+	unsigned int i;
+	va_list ap;
+
+	va_start(ap, c0);
+
+	buf[0] = c0;
+
+	unsigned int c = ~0;
+	for (i = 1; c != 0 && i < sizeof(buf) / sizeof(buf[0]); i++)
+	{
+		c = va_arg(ap, unsigned int);
+
+		buf[i] = c;
+	}
+	if (c != 0)
+	{
+		fprintf(stderr, "FATAL: raw string too large for static buffer: redimension buf[] and recompile!\n");
+		exit(9);
+	}
+	va_end(ap);
+	return buf;
 }
 
 
@@ -1360,11 +1389,11 @@ main(int argc, const char **argv)
   /* Shorthands for character classes. */
   test_comp("\\w+", REG_EXTENDED, 0);
 #ifdef SRC_IN_ISO_8859_1
-  test_exec(",.(a23_Nt-ˆo)", 0, REG_OK, 3, 9, END);
+  test_exec(raw2str(',', '.', '(', 'a', '2', '3', '_', 'N', 't', '-', 0xF6, 'o', ')', 0), 0, REG_OK, 3, 9, END);
 #else
 #ifdef SRC_IN_UTF_8
   /* iconv -f ISO-8859-1 -t UTF-8 file_with_lines_above > www_utf_8 */
-  test_exec(",.(a23_Nt-√∂o)", 0, REG_OK, 3, 9, END);
+  test_exec(raw2str(',', '.', '(', 'a', '2', '3', '_', 'N', 't', '-', 0xC3, 0xB6, 'o', ')', 0), 0, REG_OK, 3, 9, END);
 #else
   unsigned char str_000[] = {
     ',','.','(','a','2','3','_','N','t','-',0xF6,'o',0x00
@@ -1714,16 +1743,16 @@ main(int argc, const char **argv)
   /* This same test with the correct locale is below.
      TBR: This is a guess for the source encoding, see comments below after the locale is set to a Japanese locale. */
 #ifdef SRC_IN_EUC_JP
-  test_comp("µ°+", REG_EXTENDED, 0);
-  test_exec("§≥§Œæﬁ§œ°¢µ°°¶Õ¯ ÿ¿≠°¶•ª•≠",
+  test_comp(raw2str(0xC2, 0xB5, 0xC2, 0xA1, '+', 0), REG_EXTENDED, 0);
+  test_exec(raw2str(0xC2, 0xA4, 0xC2, 0xB3, 0xC2, 0xA4, ' ', 0xC2, 0xBE, ' ', 0xC2, 0xA4, ' ', 0xC2, 0xA1, 0xC2, 0xA2, 0xC2, 0xB5, 0xC2, 0xA1, 0xC2, 0xA1, 0xC2, 0xA6, ' ', 0xC3, 0xB8, ' ', 0xC2, 0xAD, 0xC2, 0xA1, 0xC2, 0xA6, 0xC2, 0xA5, 0xC2, 0xBB, 0xC2, 0xA5, 0xC2, 0xAD, 0),
             0, REG_OK, 10, 13, END);
 #else
 #ifdef SRC_IN_UTF_8
   /* iconv -f EUC_JP -t UTF-8 file_with_lines_above > zzz_utf_8
      This may be incorrect because the match results might be incorrect for UTF-8, I (TBR) just don't know enough to be certain.
      It compiles and runs successfully on my desktop with the C.UTF-8 locale. */
-  test_comp("Ê©ü+", REG_EXTENDED, 0);
-  test_exec("„Åì„ÅÆË≥û„ÅØ„ÄÅÊ©ü„ÉªÂà©‰æøÊÄß„Éª„Çª„Ç≠",
+  test_comp(raw2str(0xE8, 0xA2, 0x96, 0xE8, 0x87, 0x93, '+', 0), REG_EXTENDED, 0);
+  test_exec(raw2str(0xE9, 0x80, 0xA0, 0xE7, 0xB6, 0x9A, 0xE9, 0x80, 0xA0, 0xE3, 0x83, 0xBB, 0xE4, 0xBB, 0x96, 0xE3, 0x83, 0xBB, 0xE9, 0x80, 0xA0, 0xE3, 0x83, 0xBB, 0xE8, 0x87, 0x93, 0xE8, 0x94, 0xB5, 0xE8, 0xA2, 0x96, 0xE8, 0x87, 0x93, 0xE8, 0x87, 0x93, 0xE5, 0x81, 0xB4, 0xE3, 0x83, 0xBB, 0xE6, 0xB7, 0xA1, 0xE3, 0x83, 0xBB, 0xE3, 0x83, 0xBB, 0xE3, 0x83, 0xBB, 0xE8, 0xB6, 0xB3, 0xE8, 0x87, 0x93, 0xE5, 0x81, 0xB4, 0xE4, 0xBF, 0x83, 0xE6, 0x90, 0x8D, 0xE4, 0xBF, 0x83, 0xE8, 0xB6, 0xB3, 0),
             0, REG_OK, 15, 18, END);
 #else
   /* Represent the test strings as a sequence of bytes so we don't run afoul of the compiler's expected source-charset. */
@@ -1744,14 +1773,14 @@ main(int argc, const char **argv)
     {
       fprintf(output_fd,"\nTesting LC_CTYPE en_US.ISO-8859-1\n");
 #ifdef SRC_IN_ISO_8859_1
-      test_comp("aBCdeFghiJKlmnoPQRstuvWXyZÂ‰ˆ", REG_ICASE, 0);
-      test_exec("abCDefGhiJKlmNoPqRStuVwXyz≈ƒ÷", 0, REG_OK, 0, 29, END);
+      test_comp(raw2str('a', 'B', 'C', 'd', 'e', 'F', 'g', 'h', 'i', 'J', 'K', 'l', 'm', 'n', 'o', 'P', 'Q', 'R', 's', 't', 'u', 'v', 'W', 'X', 'y', 'Z', 0xE5, 0xE4, 0xF6, 0), REG_ICASE, 0);
+      test_exec(raw2str('a', 'b', 'C', 'D', 'e', 'f', 'G', 'h', 'i', 'J', 'K', 'l', 'm', 'N', 'o', 'P', 'q', 'R', 'S', 't', 'u', 'V', 'w', 'X', 'y', 'z', 0xC5, 0xC4, 0xD6, 0), 0, REG_OK, 0, 29, END);
 #else
 #ifdef SRC_IN_UTF_8
       /* iconv -f ISO-8859-1 -t UTF-8 file_with_lines_above > yyy_utf_8 */
       /* This fails with no match on freebsd, but succeeds in linux. */
-      test_comp("aBCdeFghiJKlmnoPQRstuvWXyZ√•√§√∂", REG_ICASE, 0);
-      test_exec("abCDefGhiJKlmNoPqRStuVwXyz√Ö√Ñ√ñ", 0, REG_OK, 0, 29, END);
+      test_comp(raw2str('a', 'B', 'C', 'd', 'e', 'F', 'g', 'h', 'i', 'J', 'K', 'l', 'm', 'n', 'o', 'P', 'Q', 'R', 's', 't', 'u', 'v', 'W', 'X', 'y', 'Z', 0xC3, 0xA5, 0xC3, 0xA4, 0xC3, 0xB6, 0), REG_ICASE, 0);
+      test_exec(raw2str('a', 'b', 'C', 'D', 'e', 'f', 'G', 'h', 'i', 'J', 'K', 'l', 'm', 'N', 'o', 'P', 'q', 'R', 'S', 't', 'u', 'V', 'w', 'X', 'y', 'z', 0xC3, 0x85, 0xC3, 0x84, 0xC3, 0x96, 0), 0, REG_OK, 0, 29, END);
 #else
       /* Represent the test strings as a sequence of bytes so we don't run afoul of the compiler's expected source-charset. */
       unsigned char str_003[] = {
@@ -1785,15 +1814,15 @@ main(int argc, const char **argv)
          all the others I tried resulted in invalid characters.  So guess at EUC-JP.
          If anyone knows what the encoding actually was, feel free to let me know at tbr at acm dot org :). */
 #ifdef SRC_IN_EUC_JP
-      test_comp("µ°+", REG_EXTENDED, 0);
-      test_exec("§≥§Œæﬁ§œ°¢µ°°¶Õ¯ ÿ¿≠°¶•ª•≠", 0, REG_OK, 10, 12, END);
+      test_comp(raw2str(0xC2, 0xB5, 0xC2, 0xA1, '+', 0), REG_EXTENDED, 0);
+      test_exec(raw2str(0xC2, 0xA4, 0xC2, 0xB3, 0xC2, 0xA4, ' ', 0xC2, 0xBE, ' ', 0xC2, 0xA4, ' ', 0xC2, 0xA1, 0xC2, 0xA2, 0xC2, 0xB5, 0xC2, 0xA1, 0xC2, 0xA1, 0xC2, 0xA6, ' ', 0xC3, 0xB8, ' ', 0xC2, 0xAD, 0xC2, 0xA1, 0xC2, 0xA6, 0xC2, 0xA5, 0xC2, 0xBB, 0xC2, 0xA5, 0xC2, 0xAD, 0), 0, REG_OK, 10, 12, END);
 #else
 #ifdef SRC_IN_UTF_8
       /* iconv -f EUC_JP -t UTF-8 file_with_lines_above > zzz_utf_8
          This may fail because the match results might be incorrect for UTF-8, I (TBR) just don't know enough to be certain.
          It compiles and runs successfully on my desktop with the C.UTF-8 locale. */
-      test_comp("Ê©ü+", REG_EXTENDED, 0);
-      test_exec("„Åì„ÅÆË≥û„ÅØ„ÄÅÊ©ü„ÉªÂà©‰æøÊÄß„Éª„Çª„Ç≠", 0, REG_OK, 10, 12, END);
+      test_comp(raw2str(0xE8, 0xA2, 0x96, 0xE8, 0x87, 0x93, '+', 0), REG_EXTENDED, 0);
+      test_exec(raw2str(0xE9, 0x80, 0xA0, 0xE7, 0xB6, 0x9A, 0xE9, 0x80, 0xA0, 0xE3, 0x83, 0xBB, 0xE4, 0xBB, 0x96, 0xE3, 0x83, 0xBB, 0xE9, 0x80, 0xA0, 0xE3, 0x83, 0xBB, 0xE8, 0x87, 0x93, 0xE8, 0x94, 0xB5, 0xE8, 0xA2, 0x96, 0xE8, 0x87, 0x93, 0xE8, 0x87, 0x93, 0xE5, 0x81, 0xB4, 0xE3, 0x83, 0xBB, 0xE6, 0xB7, 0xA1, 0xE3, 0x83, 0xBB, 0xE3, 0x83, 0xBB, 0xE3, 0x83, 0xBB, 0xE8, 0xB6, 0xB3, 0xE8, 0x87, 0x93, 0xE5, 0x81, 0xB4, 0xE4, 0xBF, 0x83, 0xE6, 0x90, 0x8D, 0xE4, 0xBF, 0x83, 0xE8, 0xB6, 0xB3, 0), 0, REG_OK, 10, 12, END);
 #else
       /* Represent the test strings as a sequence of bytes so we don't run afoul of the compiler's expected source-charset. */
       /* This test uses the same strings (str_001 and str_002) as above, now with a Japanese locale.
