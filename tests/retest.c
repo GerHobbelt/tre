@@ -1748,7 +1748,7 @@ main(int argc, const char **argv)
             0, REG_OK, 10, 13, END);
 #else
 #ifdef SRC_IN_UTF_8
-  /* iconv -f EUC_JP -t UTF-8 file_with_lines_above > zzz_utf_8
+  /* iconv -f EUC-JP -t UTF-8 file_with_lines_above > zzz_utf_8
      This may be incorrect because the match results might be incorrect for UTF-8, I (TBR) just don't know enough to be certain.
      It compiles and runs successfully on my desktop with the C.UTF-8 locale. */
   test_comp(raw2str(0xE6, 0xA9, 0x9F, '+', 0), REG_EXTENDED, 0);
@@ -1818,7 +1818,7 @@ main(int argc, const char **argv)
       test_exec(raw2str(0xA4, 0xB3, 0xA4, 0xCE, 0xBE, 0xDE, 0xA4, 0xCF, 0xA1, 0xA2, 0xB5, 0xA1, 0xA1, 0xA6, 0xCD, 0xF8, 0xCA, 0xD8, 0xC0, 0xAD, 0xA1, 0xA6, 0xA5, 0xBB, 0xA5, 0xAD, 0), 0, REG_OK, 10, 12, END);
 #else
 #ifdef SRC_IN_UTF_8
-      /* iconv -f EUC_JP -t UTF-8 file_with_lines_above > zzz_utf_8
+      /* iconv -f EUC-JP -t UTF-8 file_with_lines_above > zzz_utf_8
          This may fail because the match results might be incorrect for UTF-8, I (TBR) just don't know enough to be certain.
          It compiles and runs successfully on my desktop with the C.UTF-8 locale. */
       test_comp(raw2str(0xE6, 0xA9, 0x9F, '+', 0), REG_EXTENDED, 0);
