@@ -129,11 +129,13 @@ tre_ctype_t tre_ctype(const char *name);
 
 typedef enum { STR_WIDE, STR_BYTE, STR_MBS, STR_USER } tre_str_type_t;
 
+#define TRE_PTR2INT(ptr)			((long)(intptr_t)(ptr))
+
 /* Returns number of bytes to add to (char *)ptr to make it
    properly aligned for the type. */
 #define ALIGN(ptr, type) \
-  ((((long)ptr) % sizeof(type)) \
-   ? (sizeof(type) - (((long)ptr) % sizeof(type))) \
+  ((TRE_PTR2INT(ptr) % sizeof(type)) \
+   ? (sizeof(type) - (TRE_PTR2INT(ptr) % sizeof(type))) \
    : 0)
 
 #undef MAX
