@@ -23,8 +23,6 @@
 #include <getopt.h>
 #endif
 
-#include <regex.h>
-
 #include "tre-internal.h"
 
 #include "monolithic_examples.h"

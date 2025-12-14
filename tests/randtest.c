@@ -15,13 +15,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <regex.h>
 #include <time.h>
 
 #undef MALLOC_DEBUGGING
 #ifdef MALLOC_DEBUGGING
 #include "xmalloc.h"
 #endif /* MALLOC_DEBUGGING */
+
+#include "tre-internal.h"
 
 #include "monolithic_examples.h"
 

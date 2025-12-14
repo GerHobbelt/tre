@@ -50,9 +50,6 @@
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#ifdef HAVE_REGEX_H
-#include <regex.h>
-#endif
 
 #include "monolithic_examples.h"
 
@@ -64,6 +61,7 @@
 #define xmalloc malloc
 #define xfree free
 #endif /* !TRE_VERSION */
+
 #include "tre-internal.h"
 
 #ifdef WRETEST
