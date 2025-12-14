@@ -79,7 +79,7 @@ typedef struct {
 
 #ifdef TRE_DEBUG
 static void
-tre_print_reach(const tre_tnfa_t *tnfa, tre_tnfa_reach_t *reach, int num_tags)
+tre_print_reach(const tre_tnfa_reach_t *reach, int num_tags)
 {
   int i;
 
@@ -152,7 +152,7 @@ tre_tnfa_run_parallel(const tre_tnfa_t *tnfa, const void *string, int len,
      everything in a single large block from the stack frame using alloca()
      or with malloc() if alloca is unavailable. */
   {
-    int tbytes, rbytes, pbytes, xbytes, total_bytes;
+    size_t tbytes, rbytes, pbytes, xbytes, total_bytes;
     char *tmp_buf;
     /* Compute the length of the block we need. */
     tbytes = sizeof(*tmp_tags) * num_tags;
@@ -167,11 +167,11 @@ tre_tnfa_run_parallel(const tre_tnfa_t *tnfa, const void *string, int len,
 #ifdef TRE_USE_ALLOCA
     buf = alloca(total_bytes);
 #else /* !TRE_USE_ALLOCA */
-    buf = xmalloc((unsigned)total_bytes);
+    buf = xmalloc(total_bytes);
 #endif /* !TRE_USE_ALLOCA */
     if (buf == NULL)
       return REG_ESPACE;
-    memset(buf, 0, (size_t)total_bytes);
+    memset(buf, 0, total_bytes);
 
     /* Get the various pointers within tmp_buf (properly aligned). */
     tmp_tags = (void *)buf;
@@ -344,9 +344,9 @@ tre_tnfa_run_parallel(const tre_tnfa_t *tnfa, const void *string, int len,
 
 #ifdef TRE_DEBUG
       DPRINT(("%3d:%2lc/%05d |", pos - 1, (tre_cint_t)prev_c, (int)prev_c));
-      tre_print_reach(tnfa, reach_next, num_tags);
+      tre_print_reach(reach_next, num_tags);
       DPRINT(("%3d:%2lc/%05d |", pos, (tre_cint_t)next_c, (int)next_c));
-      tre_print_reach(tnfa, reach_next, num_tags);
+      tre_print_reach(reach_next, num_tags);
 #endif /* TRE_DEBUG */
 
       /* Swap `reach' and `reach_next'. */

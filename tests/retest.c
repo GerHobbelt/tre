@@ -1129,7 +1129,7 @@ main(int argc, const char **argv)
   test_comp("[^[:digit:]]+", REG_EXTENDED, 0);
   test_exec("%abC123890xyz=", 0, REG_OK, 0, 4, END);
   test_comp("[[:print:]]+", REG_EXTENDED, 0);
-  test_exec("\n %abC12\f", 0, REG_OK, 1, 8, END);
+  test_exec("\n\t %abC12\f", 0, REG_OK, 2, 9, END);
   test_comp("[[:upper:]]+", REG_EXTENDED, 0);
   test_exec("\n aBCDEFGHIJKLMNOPQRSTUVWXYz", 0, REG_OK, 3, 27, END);
   test_comp("[[:upper:]]+", REG_EXTENDED | REG_ICASE, 0);
@@ -1431,6 +1431,8 @@ main(int argc, const char **argv)
   test_nexec("\000", 1, 0, REG_OK, 0, 1, END);
   test_comp("\\x{}r", REG_EXTENDED, 0);
   test_nexec("\000r", 2, 0, REG_OK, 0, 2, END);
+  test_comp("\\x{00000000}", REG_EXTENDED, 0);
+  test_comp("\\x{000000000}", REG_EXTENDED, REG_EBRACE);
 
   /* Tests for (?inrU-inrU) and (?inrU-inrU:) */
   test_comp("foo(?i)bar", REG_EXTENDED, 0);

@@ -35,7 +35,7 @@
 #endif
 
 int
-main(int argc, const char **argv)
+main(void)
 {
   int len, i, flags, n;
   char regex[50];

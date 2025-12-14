@@ -55,7 +55,7 @@
 
 /* Short options. */
 static char const short_options[] =
-"cd:e:hiklnqsvwyBD:E:HI:MS:V0123456789-:";
+"cd:e:hiklm:nqsvwyBD:E:HI:MS:V0123456789-:";
 
 static int show_help = 0;
 static const char *program_name = NULL;
@@ -75,7 +75,7 @@ static struct option const long_options[] =
   {"colour", no_argument, NULL, COLOR_OPTION},
   {"count", no_argument, NULL, 'c'},
   {"delete-cost", required_argument, NULL, 'D'},
-  {"delimiter", no_argument, NULL, 'd'},
+  {"delimiter", required_argument, NULL, 'd'},
   {"delimiter-after", no_argument, NULL, 'M'},
   {"files-with-matches", no_argument, NULL, 'l'},
   {"help", no_argument, &show_help, 1},
@@ -83,6 +83,7 @@ static struct option const long_options[] =
   {"insert-cost", required_argument, NULL, 'I'},
   {"invert-match", no_argument, NULL, 'v'},
   {"line-number", no_argument, NULL, 'n'},
+  {"max-count", required_argument, NULL, 'm'},
   {"literal", no_argument, NULL, 'k'},
   {"max-errors", required_argument, NULL, 'E'},
   {"no-filename", no_argument, NULL, 'h'},
@@ -150,6 +151,7 @@ Output control:\n\
   -H, --with-filename	    print the filename for each match\n\
   -l, --files-with-matches  only print FILE names containing matches\n\
   -M, --delimiter-after     print record delimiter after record if -d is used\n\
+  -m, --max-count=NUM       stop after NUM selected lines\n\
   -n, --record-number	    print record number with output\n\
       --line-number         same as -n\n\
   -q, --quiet, --silent	    suppress all normal output\n\
@@ -198,6 +200,7 @@ static int print_filename; /* Output filename. */
 static int print_recnum;   /* Output record number. */
 static int print_cost;	   /* Output match cost. */
 static int count_matches;  /* Count matching records. */
+static int max_count;	   /* Max matching lines per input. */
 static int list_files;	   /* List matching files. */
 static int color_option;   /* Highlight matches. */
 static int print_position;  /* Show start and end offsets for matches. */
@@ -462,6 +465,8 @@ tre_agrep_handle_file(const char *filename)
 		  printf("%.*s", record_len, record);
 		}
 	    }
+	  if (max_count > 0 && count >= max_count)
+	      break;
 	}
     }
 
@@ -518,6 +523,7 @@ main(int argc, const char **argv)
   be_silent = 0;
   tre_regaparams_default(&match_params);
   match_params.max_cost = 0;
+  max_count = -1;
 
   /* Parse command line options. */
   while (1)
@@ -562,6 +568,10 @@ main(int argc, const char **argv)
 	  /* Only print files that contain matches. */
 	  list_files = 1;
 	  break;
+        case 'm':
+          /* Stop after max_count matches. */
+          max_count = atoi(optarg);
+          break;
 	case 'n':
 	  /* Print record number of matching record. */
 	  print_recnum = 1;
@@ -671,6 +681,10 @@ Copyright (c) 2001-2009 Ville Laurikari <vl@iki.fi>.\n"));
 
   if (show_help)
     return tre_agrep_usage(0);
+
+  /* Fail immediately if max_count is 0. */
+  if (max_count == 0)
+    return EXIT_FAILURE;
 
   if (color_option)
     {
