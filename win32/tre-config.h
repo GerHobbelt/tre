@@ -143,7 +143,9 @@
 /* #undef NDEBUG */
 
 /* Define to 1 if you have the ANSI C header files. */
+#ifndef STDC_HEADERS
 #define STDC_HEADERS 1
+#endif
 
 /* Define if you want to enable approximate matching functionality. */
 #define TRE_APPROX 1
