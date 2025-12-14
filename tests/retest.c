@@ -69,7 +69,7 @@
 #define CHAR_T wchar_t
 #define L(x) (L ## x)
 
-#define MAXSTRSIZE 1024
+#define MAXSTRSIZE 8192
 static wchar_t wstr[MAXSTRSIZE];
 static wchar_t wregex[MAXSTRSIZE];
 static int woffs[MAXSTRSIZE];
@@ -538,7 +538,8 @@ test_comp(const char *re, int flags, int ret)
   cflags_global = flags;
 
 #ifdef MALLOC_DEBUGGING
-  {
+  xmalloc_configure(-1);
+  if (ret != REG_ESPACE) {
     static int j = 0;
     int i = 0;
     while (1)
@@ -558,10 +559,9 @@ test_comp(const char *re, int flags, int ret)
 #endif /* REGEX_DEBUG */
 	i++;
       }
-  }
-#else /* !MALLOC_DEBUGGING */
-  errcode = wrap_regcomp(&reobj, re, len, flags);
+  } else
 #endif /* !MALLOC_DEBUGGING */
+  errcode = wrap_regcomp(&reobj, re, len, flags);
 
 #ifdef WRETEST
 #undef re
@@ -650,7 +650,8 @@ main(int argc, const char **argv)
 #ifdef WRETEST
   /* Need an 8-bit locale.  Or move the two tests with non-ascii
      characters to the localized internationalization tests.  */
-  if (setlocale(LC_CTYPE, "en_US.ISO-8859-1") == NULL)
+  if (setlocale(LC_CTYPE, "en_US.ISO-8859-1") == NULL &&
+      setlocale(LC_CTYPE, "en_US.ISO8859-1") == NULL)
     fprintf(stderr, "Could not set locale en_US.ISO-8859-1.  Expect some\n"
 		    "`Invalid or incomplete multi-byte sequence' errors.\n");
 #endif /* WRETEST */
@@ -1464,6 +1465,27 @@ main(int argc, const char **argv)
   test_exec("fooabc123wxyz", 0, REG_OK, 0, 3, END);
 
   /*
+   * Test integer parser used for bounded repititions.
+   */
+
+  test_comp("a{9223372036854775808,}", REG_EXTENDED, REG_BADMAX);
+  test_comp("a{9223372036854775808}", REG_EXTENDED, REG_BADMAX);
+  test_comp("a{9223372036854775807,}", REG_EXTENDED, REG_BADMAX);
+  test_comp("a{9223372036854775807}", REG_EXTENDED, REG_BADMAX);
+  test_comp("a{2147483648,}", REG_EXTENDED, REG_BADMAX);
+  test_comp("a{2147483648}", REG_EXTENDED, REG_BADMAX);
+  test_comp("a{2147483647,}", REG_EXTENDED, REG_BADMAX);
+  test_comp("a{2147483647}", REG_EXTENDED, REG_BADMAX);
+  test_comp("a{32768,}", REG_EXTENDED, REG_BADMAX);
+  test_comp("a{32768}", REG_EXTENDED, REG_BADMAX);
+  test_comp("a{32767,}", REG_EXTENDED, REG_BADMAX);
+  test_comp("a{32767}", REG_EXTENDED, REG_BADMAX);
+  test_comp("a{256,}", REG_EXTENDED, REG_BADMAX);
+  test_comp("a{256}", REG_EXTENDED, REG_BADMAX);
+  test_comp("a{255,}", REG_EXTENDED, REG_OK);
+  test_comp("a{255}", REG_EXTENDED, REG_OK);
+
+  /*
    * Test bounded repetitions.
    */
 
@@ -1501,6 +1523,21 @@ main(int argc, const char **argv)
   test_exec("aaaaa", 0, REG_OK, 0, 5, END);
   test_exec("aaaaaa", 0, REG_OK, 0, 6, END);
   test_exec("aaaaaaa", 0, REG_OK, 0, 7, END);
+  test_comp("a{,}", REG_EXTENDED, REG_OK);
+  test_exec("", 0, REG_OK, 0, 0, END);
+  test_exec("aaa", 0, REG_OK, 0, 3, END);
+  test_comp("a{,0}", REG_EXTENDED, REG_OK);
+  test_exec("", 0, REG_OK, 0, 0, END);
+  test_exec("aaa", 0, REG_OK, 0, 0, END);
+  test_comp("a{,1}", REG_EXTENDED, REG_OK);
+  test_exec("", 0, REG_OK, 0, 0, END);
+  test_exec("a", 0, REG_OK, 0, 1, END);
+  test_exec("aa", 0, REG_OK, 0, 1, END);
+  test_comp("a{,2}", REG_EXTENDED, REG_OK);
+  test_exec("", 0, REG_OK, 0, 0, END);
+  test_exec("a", 0, REG_OK, 0, 1, END);
+  test_exec("aa", 0, REG_OK, 0, 2, END);
+  test_exec("aaa", 0, REG_OK, 0, 2, END);
 
   test_comp("a{5,10}", REG_EXTENDED, REG_OK);
   test_comp("a{6,6}", REG_EXTENDED, REG_OK);
@@ -1531,6 +1568,13 @@ main(int argc, const char **argv)
 	    0, 24, 0, 10, 10, 22, END);
   test_exec("abbabbbabaabbbbbbbbbbbba", 0, REG_OK,
 	    0, 24, 0, 10, 10, 22, END);
+
+  test_comp("^((a{1,2})?x)*y", REG_EXTENDED | REG_NOSUB, REG_OK);
+  test_exec("y", 0, REG_OK, END);
+  test_exec("xy", 0, REG_OK, END);
+  test_exec("axy", 0, REG_OK, END);
+  test_exec("aaxy", 0, REG_OK, END);
+  test_exec("aaaxy", 0, REG_NOMATCH, END);
 
   /* Test repeating something that has submatches inside. */
   test_comp("(a){0,5}", REG_EXTENDED, 0);
@@ -1732,6 +1776,12 @@ main(int argc, const char **argv)
   test_comp("a\\{1,256\\}", 0, REG_BADMAX);
 
 
+#define TOOLONG 2048
+  static char toolong[TOOLONG + TOOLONG + 1];
+  memset(toolong, '(', TOOLONG);
+  memset(toolong + TOOLONG, ')', TOOLONG);
+  toolong[TOOLONG + TOOLONG] = '\0';
+  test_comp(toolong, REG_EXTENDED, REG_ESPACE);
 
 
   /*
@@ -1767,7 +1817,7 @@ main(int argc, const char **argv)
 
 #if !defined(WIN32) && !defined(__OpenBSD__)
   if (setlocale(LC_CTYPE, "en_US.ISO-8859-1") != NULL ||
-      setlocale(LC_CTYPE, "en_US.ISO8859-1" /* FreeBSD seems to spell it differently */) != NULL)
+      setlocale(LC_CTYPE, "en_US.ISO8859-1") != NULL)
     {
       fprintf(output_fd,"\nTesting LC_CTYPE en_US.ISO-8859-1\n");
 #ifdef SRC_IN_ISO_8859_1
