@@ -1,23 +1,8 @@
 /* config.h for Windows. */
 
-/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
-   systems. This function is required for `alloca.c' support on those systems.
-*/
-/* #undef CRAY_STACKSEG_END */
-
-/* Define to 1 if using `alloca.c'. */
-/* #undef C_ALLOCA */
-
 /* Define to 1 if translation of program messages to the user's native
    language is requested. */
 /* #undef ENABLE_NLS */
-
-/* Define to 1 if you have `alloca', as a function or macro. */
-#define HAVE_ALLOCA 1
-
-/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
- */
-/* #undef HAVE_ALLOCA_H */
 
 /* Define to 1 if you have <malloc.h> and it should be used. */
 #define HAVE_MALLOC_H 1
@@ -30,10 +15,10 @@
 /* #undef HAVE_DLFCN_H */
 
 /* Define to 1 if you have the <getopt.h> header file. */
-#define HAVE_GETOPT_H 1
+/* #undef HAVE_GETOPT_H */
 
 /* Define to 1 if you have the `getopt_long' function. */
-#define HAVE_GETOPT_LONG 1
+/* #undef HAVE_GETOPT_LONG */
 
 /* Define if the GNU gettext() function is already present or preinstalled. */
 /* #undef HAVE_GETTEXT */
@@ -96,7 +81,7 @@
 #define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the `towlower' function. */
-#undef HAVE_TOWLOWER
+/* #undef HAVE_TOWLOWER */
 
 /* Define to 1 if you have the `towupper' function. */
 #define HAVE_TOWUPPER 1
@@ -165,6 +150,18 @@
 
 /* Define to include the system regex.h from tre.h */
 /* #undef TRE_USE_SYSTEM_REGEX_H */
+
+/* TRE version string. */
+#define TRE_VERSION "0.8.0"
+
+/* TRE version level 1. */
+#define TRE_VERSION_1 0
+
+/* TRE version level 2. */
+#define TRE_VERSION_2 8
+
+/* TRE version level 3. */
+#define TRE_VERSION_3 0
 
 /* Define to enable wide character (wchar_t) support. */
 #define TRE_WCHAR 1

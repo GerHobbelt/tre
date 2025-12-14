@@ -14,13 +14,6 @@
    language is requested. */
 /* #undef ENABLE_NLS */
 
-/* Define to 1 if you have `alloca', as a function or macro. */
-#define HAVE_ALLOCA 1
-
-/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
- */
-#define HAVE_ALLOCA_H 1
-
 /* Define to 1 if you have <malloc.h> and it should be used. */
 #define HAVE_MALLOC_H 1
 
