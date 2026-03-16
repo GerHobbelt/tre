@@ -95,8 +95,8 @@ stats(double *sample_data, int samples, int len)
     percent = 0;
   /* This printf is using the single code point +/- symbol. */
 #ifdef SRC_IN_ISO_8859_1
-  printf("# error: ±%.16f (±%.4f%%)\n", error, percent);
-#else
+  #error "sourcecode is assumed to be UTF8"
+#else // SRC_IN_UTF_8
   /* Use the UTF-8 encoding. */
   printf("# error: Â±%.16f (Â±%.4f%%)\n", error, percent);
 #endif
@@ -183,9 +183,8 @@ main(int argc, const char **argv)
       break;
     default:
 #ifdef SRC_IN_ISO_8859_1
-      printf("Pälli.\n");
-#endif
-#ifdef SRC_IN_UTF_8
+      #error "sourcecode is assumed to be UTF8"
+#else // SRC_IN_UTF_8
       /* iconv -f ISO-8859-1 -t UTF-8 file_with_lines_above > bbb_utf_8 */
       printf("PÃ¤lli.\n");
 #endif
