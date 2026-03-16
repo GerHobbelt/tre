@@ -21,6 +21,10 @@
 #include <sys/types.h>
 #endif /* HAVE_SYS_TYPES_H */
 
+#if defined(_MSC_VER)
+typedef signed long long int ssize_t;
+#endif
+
 #include <limits.h>
 #include <ctype.h>
 #include "../local_includes/tre.h"
